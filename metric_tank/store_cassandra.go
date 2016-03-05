@@ -193,6 +193,7 @@ func (c *cassandraStore) processReadQueue() {
 // Basic search of cassandra.
 // start inclusive, end exclusive
 func (c *cassandraStore) Search(key string, start, end uint32) ([]Iter, error) {
+	nano := time.Now().UnixNano()
 	iters := make([]Iter, 0)
 	if start > end {
 		return iters, fmt.Errorf("start must be before end.")
@@ -203,6 +204,7 @@ func (c *cassandraStore) Search(key string, start, end uint32) ([]Iter, error) {
 
 	query := func(month, sortKey uint32, q string, p ...interface{}) {
 		numQueries += 1
+		log.Info("DD %d q< %d NQ %d", nano, month, numQueries)
 		c.readQueue <- &ChunkReadRequest{month, sortKey, q, p, results}
 	}
 
@@ -247,8 +249,10 @@ func (c *cassandraStore) Search(key string, start, end uint32) ([]Iter, error) {
 	seen := 0
 	for o := range results {
 		seen += 1
+		log.Info("DD %d got %d seen %d", nano, o.month, seen)
 		outcomes = append(outcomes, o)
 		if seen == numQueries {
+			log.Info("DD %d br", nano)
 			close(results)
 			cassGetDuration.Value(time.Now().Sub(pre))
 			break
