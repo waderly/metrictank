@@ -18,6 +18,7 @@ mkdir -p ${BUILD}/etc/init
 mkdir -p ${BUILD}/etc/raintank
 
 cp ${BASE}/config/metrictank.ini ${BUILD}/etc/raintank/
+cp ${BASE}/config/storage-schemas.conf ${BUILD}/etc/raintank/
 cp ${BUILD_ROOT}/metrictank ${BUILD}/usr/sbin/
 
 PACKAGE_NAME="${BUILD}/metrictank-${VERSION}_${ARCH}.deb"
@@ -38,6 +39,7 @@ mkdir -p ${BUILD}/etc/raintank
 mkdir -p ${BUILD}/var/run/raintank
 
 cp ${BASE}/config/metrictank.ini ${BUILD}/etc/raintank/
+cp ${BASE}/config/storage-schemas.conf ${BUILD}/etc/raintank/
 cp ${BUILD_ROOT}/metrictank ${BUILD}/usr/sbin/
 cp ${BASE}/config/systemd/metrictank.service $BUILD/lib/systemd/system/
 
@@ -57,6 +59,7 @@ mkdir -p ${BUILD}/etc/raintank
 mkdir -p ${BUILD}/var/run/raintank
 
 cp ${BASE}/config/metrictank.ini ${BUILD}/etc/raintank/
+cp ${BASE}/config/storage-schemas.conf ${BUILD}/etc/raintank/
 cp ${BUILD_ROOT}/metrictank ${BUILD}/usr/sbin/
 cp ${BASE}/config/systemd/metrictank.service $BUILD/lib/systemd/system/
 
@@ -75,6 +78,7 @@ mkdir -p ${BUILD}/etc/init
 mkdir -p ${BUILD}/etc/raintank
 
 cp ${BASE}/config/metrictank.ini ${BUILD}/etc/raintank/
+cp ${BASE}/config/storage-schemas.conf ${BUILD}/etc/raintank/
 cp ${BUILD_ROOT}/metrictank ${BUILD}/usr/sbin/
 cp ${BASE}/config/upstart-0.6.5/metrictank.conf $BUILD/etc/init
 
