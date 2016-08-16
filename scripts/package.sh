@@ -26,6 +26,9 @@ fpm -s dir -t deb \
   -v ${VERSION} -n metrictank -a ${ARCH} --description "metrictank, the gorilla-inspired timeseries database backend for graphite" \
   --deb-upstart ${BASE}/config/upstart/metrictank \
   --deb-recommends graphite-metrictank \
+  --deb-suggests cassandra \
+  --deb-suggests elasticsearch \
+  --deb-suggests kafka \
   --replaces metric-tank --provides metric-tank \
   --conflicts metric-tank \
   -C ${BUILD} -p ${PACKAGE_NAME} .
@@ -48,6 +51,9 @@ fpm -s dir -t deb \
   -v ${VERSION} -n metrictank -a ${ARCH} --description "metrictank, the gorilla-inspired timeseries database backend for graphite" \
   --config-files /etc/raintank/ \
   --deb-recommends graphite-metrictank \
+  --deb-suggests cassandra \
+  --deb-suggests elasticsearch \
+  --deb-suggests kafka \
   -m "Raintank Inc. <hello@raintank.io>" --vendor "raintank.io" \
   --license "Apache2.0" -C ${BUILD} -p ${PACKAGE_NAME} .
 
