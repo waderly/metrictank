@@ -45,8 +45,8 @@ We aim to keep master stable, so that's your best bet.
 
 Supported distributions:
 
-* Ubuntu 14.04, 16.04
-* Debian Jessie
+* Ubuntu 14.04 (Trusty Tahr), 16.04 (Xenial Xerus)
+* Debian 8 (jessie)
 * Centos 6, 7
 
 ### Chef cookbook
@@ -66,7 +66,7 @@ Also here, you can just install it and start it with default settings.
 
 ## Set up statsd
 
-Metrictank uses statsd or a statsd-compatible agent for its instrumentation.
+Metrictank needs statsd or a statsd-compatible agent for its instrumentation.
 It will refuse to start if nothing listens on the configured `statsd-addr`.
 
 You can install the official [statsd](https://github.com/etsy/statsd) (see its installation instructions)
@@ -76,14 +76,16 @@ For the [metrictank dashboard](https://grafana.net/dashboards/279) to work prope
 
 Below are instructions for statsd and statsdaemon:
 
-Note, for either one `<environment>` is however you choose to call your environment. (test, production, dev, ...).
+Note:
+ * `<environment>` is however you choose to call your environment. (test, production, dev, ...).
+ * we recommend installing statsd/statsdaemon on the same host as metrictank.
 
 ### Statsdaemon
 
 [Statsdaemon](https://github.com/vimeo/statsdaemon) is the recommended option.
-To install it, you need to have a [Golang](https://golang.org/) compiler installed.
-
-Then just run `go get github.com/Vimeo/statsdaemon/statsdaemon`
+To install it, you can either use the deb packages from the aforementioned repository,
+or you need to have a [Golang](https://golang.org/) compiler installed.
+In that case just run `go get github.com/Vimeo/statsdaemon/statsdaemon`
 
 Get the default config file from `https://github.com/vimeo/statsdaemon/blob/master/statsdaemon.ini`
 and update the following settings:
@@ -97,7 +99,7 @@ prefix_gauges = "stats.<environment>.gauges."
 percentile_thresholds = "90,75"
 ```
 
-Then just run `statsdaemon`.  If you use ubuntu there's an [upstart init config](https://github.com/vimeo/statsdaemon/blob/master/upstart-init-statsdaemon.conf)
+Then just run `statsdaemon`.  If you use ubuntu you can use the package or the [upstart init config](https://github.com/vimeo/statsdaemon/blob/master/upstart-init-statsdaemon.conf) from the statsdaemon repo.
 
 ### Statsd
 
@@ -127,10 +129,12 @@ Then just run it.  Default settings are fine.
 
 See the [example config file](https://github.com/raintank/metrictank/blob/master/metrictank-sample.ini) which guides you through the various options
 
+You may need to adjust the `statsd-addr` based on where you decided to run that service.
+
 Out of the box, one input is enabled: the [Carbon line input](https://github.com/raintank/metrictank/blob/master/docs/inputs.md#carbon)
 It uses a default storage-schemas to coalesce every incoming metric into 1 second resolution.  You may want to fine tune this for your needs.
 (or simply what you already use in a pre-existing Graphite install).
-See the input plugin documentation referenced above.
+See the input plugin documentation referenced above for more details.
 
 If you want to use Kafka, you should enable the Kafka-mdm input plugin.  See [the Inputs docs for more details](https://github.com/raintank/metrictank/blob/master/docs/inputs.md).
 See the `kafka-mdm-in` section in the config for the options you need to tweak.
