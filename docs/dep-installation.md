@@ -10,8 +10,10 @@ For Debian and Debian based distros (taken from [http://cassandra.apache.org/dow
 
 * Add this to your `/etc/apt/sources.list`:
 
-```deb http://www.apache.org/dist/cassandra/debian 30x main 
-deb-src http://www.apache.org/dist/cassandra/debian 30x main```
+```
+deb http://www.apache.org/dist/cassandra/debian 30x main 
+deb-src http://www.apache.org/dist/cassandra/debian 30x main
+```
 
 * Run `gpg --keyserver pgp.mit.edu --recv-keys <public key> gpg --export --armor <public key> | sudo apt-key add -` to add the GPG key.
 
@@ -21,11 +23,13 @@ For RHEL-based distros (taken from http://docs.datastax.com/en/cassandra/3.x/cas
 
 * Add the DataStax Distribution of Apache Cassandra 3.x repository to the /etc/yum.repos.d/datastax.repo:
 
-```[datastax-ddc] 
+```
+[datastax-ddc] 
 name = DataStax Repo for Apache Cassandra
 baseurl = http://rpm.datastax.com/datastax-ddc/3.1
 enabled = 1
-gpgcheck = 0```
+gpgcheck = 0
+```
 
 * Run `sudo yum install datastax-ddc`
 
@@ -49,12 +53,14 @@ For RHEL based distros (taken from the same URL as above):
 
 * Add the following in your /etc/yum.repos.d/ directory in a file with a .repo suffix, for example elasticsearch.repo
 
-```[elasticsearch-2.x]
+```
+[elasticsearch-2.x]
 name=Elasticsearch repository for 2.x packages
 baseurl=https://packages.elastic.co/elasticsearch/2.x/centos
 gpgcheck=1
 gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch
-enabled=1```
+enabled=1
+```
 
 * Install elasticsearch with `yum install elasticsearch`
 
@@ -68,16 +74,20 @@ Kafka requires Zookeeper, so set that up first. (Taken from https://zookeeper.ap
 
 * Unpack zookeeper. For this guide we'll install it in `/opt`.
 
-```cd /opt
+```
+cd /opt
 tar -zxvf /path/to/zookeeper-3.4.8.tar.gz
 ln -s /opt/zookeeper-3.4.8 /opt/zookeeper
-mkdir /var/lib/zookeeper```
+mkdir /var/lib/zookeeper
+```
 
 * Make a config file for zookeeper in `/opt/zookeeper/conf/zoo.cfg`:
 
-```tickTime=2000
+```
+tickTime=2000
 dataDir=/var/lib/zookeeper
-clientPort=2181```
+clientPort=2181
+```
 
 * Start zookeeper: `/opt/zookeeper/bin/zkServer.sh start`
 
@@ -87,9 +97,11 @@ Now we can setup kafka. (Taken from https://kafka.apache.org/documentation.html#
 
 * Unpack kafka. Like zookeeper, we'll do so in `/opt`.
 
-```cd /opt
+```
+cd /opt
 tar -zxvf /path/to/kafka_2.11-0.10.0.1.tgz
-ln -s /opt/kafka_2.11-0.10.0.1 /opt/kafka```
+ln -s /opt/kafka_2.11-0.10.0.1 /opt/kafka
+```
 
 * Start kafka: `/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties`
 
