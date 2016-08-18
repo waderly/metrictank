@@ -1,6 +1,6 @@
 # Dependency Installation
 
-Metrictank has some dependencies. None of them are enforced by the package, because running these services on other machines is a very common configuration, but they'll need to be running somewhere.
+Metrictank has some dependencies. None of them are hard dependencies enforced by the package, because running these services on other machines is a very common configuration, but they'll need to be running somewhere and metrictank won't run without them.
 
 Cassandra, Elasticsearch, and Kafka require Java. We recommend using Oracle Java 8.
 
