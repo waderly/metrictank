@@ -6,7 +6,7 @@ Cassandra, Elasticsearch, and Kafka require Java. We recommend using Oracle Java
 
 ## Cassandra
 
-For Debian and Debian based distros (taken from [http://cassandra.apache.org/download/](http://cassandra.apache.org/download/)):
+For Debian and Debian based distros (taken from [http://cassandra.apache.org/download/](ttp://cassandra.apache.org/download/)):
 
 * Add this to your `/etc/apt/sources.list`:
 
@@ -15,9 +15,9 @@ deb http://www.apache.org/dist/cassandra/debian 30x main
 deb-src http://www.apache.org/dist/cassandra/debian 30x main
 ```
 
-* Run `gpg --keyserver pgp.mit.edu --recv-keys <public key> gpg --export --armor <public key> | sudo apt-key add -` to add the GPG key.
+* Run `gpg --keyserver pgp.mit.edu --recv-keys 0353B12C && gpg --export --armor 0353B12C | sudo apt-key add -` to add the GPG key.
 
-* Run `sudo apt-get update && sudo apt-get install cassandra cassandra-tools dsc30`
+* Run `sudo apt-get update && sudo apt-get install cassandra cassandra-tools`
 
 For RHEL-based distros (taken from http://docs.datastax.com/en/cassandra/3.x/cassandra/install/installRHEL.html):
 
@@ -45,7 +45,7 @@ For Debian and Debian based distros (taken from https://www.elastic.co/guide/en/
 
 `echo "deb https://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list`
 
-* Install elasticsearch with `sudo apt-get update && sudo apt-get install elasticsearch`
+* Install elasticsearch with `sudo apt-get install apt-transport-https && sudo apt-get update && sudo apt-get install elasticsearch`
 
 For RHEL based distros (taken from the same URL as above):
 
@@ -135,5 +135,6 @@ If, for whatever reason, you can't do that:
   * `find /usr/share/python/graphite ! -perm -a+r -exec chmod a+r {} \;`
   * `cd /usr/share/python/graphite`
   * `virtualenv-tools --update-path /usr/share/python/graphite`
+  * `mkdir -p /var/log/graphite`
 
-The easiest way to run graphite-api + graphite-metrictank when you've installed it from source is to find the appropriate startup script in the `pkg/` directory in the graphite-metrictank repo, the defaults file at `pkg/common/default/graphite-metrictank`, and the `graphite-metrictank.yaml` and `gunicorn_conf.py` config files in `pkg/common/graphite-metrictank`.
+The easiest way to run graphite-api + graphite-metrictank when you've installed it from source is to find the appropriate startup script in the `pkg/` directory in the graphite-metrictank repo, the defaults file at `pkg/common/default/graphite-metrictank`, and the `graphite-metrictank.yaml` and `gunicorn_conf.py` config files in `pkg/common/graphite-metrictank`. **NB:** If you do not use `virtualenv` to install graphite-api and graphite-metrictank, you will need to modify the startup script to point at the system python and the gunicorn you installed (which will probably be at `/usr/local/bin/gunicorn`).
