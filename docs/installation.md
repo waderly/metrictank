@@ -46,7 +46,7 @@ We aim to keep master stable, so that's your best bet.
 Supported distributions:
 
 * Ubuntu 14.04 (Trusty Tahr), 16.04 (Xenial Xerus)
-* Debian 8 (jessie)
+* Debian 7 (wheezy), 8 (jessie)
 * Centos 6, 7
 
 ### Chef cookbook
@@ -62,7 +62,7 @@ To tweak schema and settings, see [Cassandra](https://github.com/raintank/metric
 
 ## Set up elasticsearch
 
-Also here, you can just install it and start it with default settings. 
+Here, you can also just install it and start it with default settings. 
 
 ## Set up statsd
 
@@ -99,6 +99,8 @@ prefix_gauges = "stats.<environment>.gauges."
 percentile_thresholds = "90,75"
 ```
 
+Also, since by default metrictank listens on port 6060, you'll need to change statsdaemon's `profile_addr` setting from `":6060"` to something else, like `":6061"`.
+
 Then just run `statsdaemon`.  If you use ubuntu you can use the package or the [upstart init config](https://github.com/vimeo/statsdaemon/blob/master/upstart-init-statsdaemon.conf) from the statsdaemon repo.
 
 ### Statsd
@@ -122,12 +124,11 @@ Also, in case you want to make any change to your aggregations, Cassandra cluste
 ** Note: the above actually doesn't work yet, as we don't have the seek-back-in-time implemented yet to fetch old data from Kafka.
 So for now using Kafka is more about preparing for the future than getting immediate benefit. **
 
-You can install Kafka. Ideally 0.10 or later.
-Then just run it.  Default settings are fine.
+You can install Kafka (and its zookeeper dependency). Ideally, it should be 0.10 or later. Then, just run it.  Default settings are fine.
 
 ## Configuration
 
-See the [example config file](https://github.com/raintank/metrictank/blob/master/metrictank-sample.ini) which guides you through the various options
+See the [example config file](https://github.com/raintank/metrictank/blob/master/metrictank-sample.ini) which guides you through the various options.
 
 You may need to adjust the `statsd-addr` based on where you decided to run that service.
 
