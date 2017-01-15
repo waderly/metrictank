@@ -8,24 +8,22 @@ import (
 	"github.com/raintank/metrictank/mdata/chunk"
 )
 
-func getItgen(values []uint32, ts uint32, span bool) *chunk.IterGen {
+func getItgen(t *testing.T, values []uint32, ts uint32, spanaware bool) *chunk.IterGen {
 	var b []byte
 	buf := new(bytes.Buffer)
-	if span {
+	if spanaware {
 		binary.Write(buf, binary.LittleEndian, uint8(chunk.FormatStandardGoTszWithSpan))
 		spanCode, ok := chunk.RevChunkSpans[uint32(len(values))]
 		if !ok {
-			return nil
+			t.Fatalf("invalid chunk span provided (%d)", len(values))
 		}
 		binary.Write(buf, binary.LittleEndian, spanCode)
 	} else {
 		binary.Write(buf, binary.LittleEndian, uint8(chunk.FormatStandardGoTsz))
 	}
-
-	for _, value := range values {
-		binary.Write(buf, binary.LittleEndian, uint32(value))
+	for _, val := range values {
+		binary.Write(buf, binary.LittleEndian, uint32(val))
 	}
-
 	buf.Write(b)
 
 	itgen, _ := chunk.NewGen(buf.Bytes(), ts)
@@ -33,15 +31,15 @@ func getItgen(values []uint32, ts uint32, span bool) *chunk.IterGen {
 	return itgen
 }
 
-func getConnectedChunks(metric string) *CCache {
+func getConnectedChunks(t *testing.T, metric string) *CCache {
 	cc := NewCCache()
 
 	values := []uint32{1, 2, 3, 4, 5}
-	itgen1 := getItgen(values, 1000, false)
-	itgen2 := getItgen(values, 1005, false)
-	itgen3 := getItgen(values, 1010, false)
-	itgen4 := getItgen(values, 1015, false)
-	itgen5 := getItgen(values, 1020, false)
+	itgen1 := getItgen(t, values, 1000, false)
+	itgen2 := getItgen(t, values, 1005, false)
+	itgen3 := getItgen(t, values, 1010, false)
+	itgen4 := getItgen(t, values, 1015, false)
+	itgen5 := getItgen(t, values, 1020, false)
 
 	cc.Add(metric, 0, *itgen1)
 	cc.Add(metric, 1000, *itgen2)
@@ -57,8 +55,8 @@ func TestConsecutiveAdding(t *testing.T) {
 	cc := NewCCache()
 
 	values := []uint32{1, 2, 3, 4, 5}
-	itgen1 := getItgen(values, 1000, false)
-	itgen2 := getItgen(values, 1005, false)
+	itgen1 := getItgen(t, values, 1000, false)
+	itgen2 := getItgen(t, values, 1005, false)
 
 	cc.Add(metric, 0, *itgen1)
 	cc.Add(metric, 1000, *itgen2)
@@ -93,9 +91,9 @@ func TestDisconnectedAdding(t *testing.T) {
 	cc := NewCCache()
 
 	values := []uint32{1, 2, 3, 4, 5}
-	itgen1 := getItgen(values, 1000, true)
-	itgen2 := getItgen(values, 1005, true)
-	itgen3 := getItgen(values, 1010, true)
+	itgen1 := getItgen(t, values, 1000, true)
+	itgen2 := getItgen(t, values, 1005, true)
+	itgen3 := getItgen(t, values, 1010, true)
 
 	cc.Add(metric, 0, *itgen1)
 	cc.Add(metric, 0, *itgen2)
@@ -127,9 +125,9 @@ func TestDisconnectedAddingByGuessing(t *testing.T) {
 	cc := NewCCache()
 
 	values := []uint32{1, 2, 3, 4, 5}
-	itgen1 := getItgen(values, 1000, false)
-	itgen2 := getItgen(values, 1005, false)
-	itgen3 := getItgen(values, 1010, false)
+	itgen1 := getItgen(t, values, 1000, false)
+	itgen2 := getItgen(t, values, 1005, false)
+	itgen3 := getItgen(t, values, 1010, false)
 
 	cc.Add(metric, 0, *itgen1)
 	cc.Add(metric, 1000, *itgen2)
@@ -170,7 +168,7 @@ func TestDisconnectedAddingByGuessing(t *testing.T) {
 
 func TestSearchFromBeginningComplete(t *testing.T) {
 	metric := "metric1"
-	cc := getConnectedChunks(metric)
+	cc := getConnectedChunks(t, metric)
 	res := cc.Search(metric, 1006, 1025)
 
 	if !res.Complete {
@@ -188,7 +186,7 @@ func TestSearchFromBeginningComplete(t *testing.T) {
 
 func TestSearchFromBeginningIncompleteEnd(t *testing.T) {
 	metric := "metric1"
-	cc := getConnectedChunks(metric)
+	cc := getConnectedChunks(t, metric)
 	res := cc.Search(metric, 1006, 1030)
 	if res.Complete {
 		t.Fatalf("complete is expected to be false")
@@ -205,7 +203,7 @@ func TestSearchFromBeginningIncompleteEnd(t *testing.T) {
 
 func TestSearchFromEnd(t *testing.T) {
 	metric := "metric1"
-	cc := getConnectedChunks(metric)
+	cc := getConnectedChunks(t, metric)
 	res := cc.Search(metric, 500, 1025)
 
 	if res.Complete {
@@ -226,5 +224,158 @@ func TestSearchFromEnd(t *testing.T) {
 
 	if res.End[0].Ts() != 1020 || res.End[len(res.End)-1].Ts() != 1000 {
 		t.Fatalf("result set is wrong")
+	}
+}
+
+func TestSearchDisconnectedStartEndSpanawareAscending(t *testing.T) {
+	testSearchDisconnectedStartEnd(t, true, true)
+}
+
+func TestSearchDisconnectedStartEndSpanawareDescending(t *testing.T) {
+	testSearchDisconnectedStartEnd(t, true, false)
+}
+
+func TestSearchDisconnectedStartEndNonSpanaware(t *testing.T) {
+	testSearchDisconnectedStartEnd(t, false, true)
+}
+
+func testSearchDisconnectedStartEnd(t *testing.T, spanaware, ascending bool) {
+	var cc *CCache
+	var res *CCSearchResult
+	metric := "metric1"
+	values := []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+	itgen1 := getItgen(t, values, 1000, spanaware)
+	itgen2 := getItgen(t, values, 1010, spanaware)
+	itgen3 := getItgen(t, values, 1020, spanaware)
+	itgen4 := getItgen(t, values, 1030, spanaware)
+	itgen5 := getItgen(t, values, 1040, spanaware)
+	itgen6 := getItgen(t, values, 1050, spanaware)
+
+	for from := uint32(1000); from < 1010; from++ {
+		// the end of ranges is exclusive, so we go up to 1060
+		for until := uint32(1051); until < 1061; until++ {
+			cc = NewCCache()
+
+			if ascending {
+				cc.Add(metric, 0, *itgen1)
+				cc.Add(metric, 1000, *itgen2)
+				cc.Add(metric, 1010, *itgen3)
+				cc.Add(metric, 0, *itgen4)
+				cc.Add(metric, 1030, *itgen5)
+				cc.Add(metric, 1040, *itgen6)
+			} else {
+				cc.Add(metric, 0, *itgen6)
+				cc.Add(metric, 0, *itgen5)
+				cc.Add(metric, 0, *itgen4)
+				cc.Add(metric, 0, *itgen3)
+				cc.Add(metric, 0, *itgen2)
+				cc.Add(metric, 0, *itgen1)
+			}
+
+			res = cc.Search(metric, from, until)
+			if !res.Complete {
+				t.Fatalf("from %d, until %d: complete is expected to be true", from, until)
+			}
+
+			if len(res.Start) != 6 {
+				t.Fatalf("from %d, until %d: expected to get %d itergens at start, got %d", from, until, 6, len(res.Start))
+			}
+
+			if res.Start[0].Ts() != 1000 || res.Start[len(res.Start)-1].Ts() != 1050 {
+				t.Fatalf("from %d, until %d: result set at Start is wrong", from, until)
+			}
+
+			if res.From != 1060 {
+				t.Fatalf("from %d, until %d: expected From to be %d, got %d", from, until, 1060, res.From)
+			}
+
+			if len(res.End) != 0 {
+				t.Fatalf("from %d, until %d: expected to get %d itergens at end, got %d", from, until, 0, len(res.End))
+			}
+
+			if res.Until != until {
+				t.Fatalf("from %d, until %d: expected Until to be %d, got %d", from, until, 1055, res.Until)
+			}
+		}
+	}
+}
+
+func TestSearchDisconnectedWithGapStartEndSpanawareAscending(t *testing.T) {
+	testSearchDisconnectedWithGapStartEnd(t, true, true)
+}
+
+func TestSearchDisconnectedWithGapStartEndSpanawareDescending(t *testing.T) {
+	testSearchDisconnectedWithGapStartEnd(t, true, false)
+}
+
+func TestSearchDisconnectedWithGapStartEndNonSpanaware(t *testing.T) {
+	testSearchDisconnectedWithGapStartEnd(t, false, true)
+}
+
+func testSearchDisconnectedWithGapStartEnd(t *testing.T, spanaware, ascending bool) {
+	metric := "metric1"
+	var cc *CCache
+	var res *CCSearchResult
+
+	values := []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	itgen1 := getItgen(t, values, 1000, spanaware)
+	itgen2 := getItgen(t, values, 1010, spanaware)
+	itgen3 := getItgen(t, values, 1020, spanaware)
+	// missing chunk
+	itgen4 := getItgen(t, values, 1040, spanaware)
+	itgen5 := getItgen(t, values, 1050, spanaware)
+	itgen6 := getItgen(t, values, 1060, spanaware)
+
+	for from := uint32(1000); from < 1010; from++ {
+		// the end of ranges is exclusive, so we go up to 1060
+		for until := uint32(1061); until < 1071; until++ {
+			cc = NewCCache()
+
+			if ascending {
+				cc.Add(metric, 0, *itgen1)
+				cc.Add(metric, 1000, *itgen2)
+				cc.Add(metric, 1010, *itgen3)
+				cc.Add(metric, 0, *itgen4)
+				cc.Add(metric, 1040, *itgen5)
+				cc.Add(metric, 1050, *itgen6)
+			} else {
+				cc.Add(metric, 0, *itgen6)
+				cc.Add(metric, 0, *itgen5)
+				cc.Add(metric, 0, *itgen4)
+				cc.Add(metric, 0, *itgen3)
+				cc.Add(metric, 0, *itgen2)
+				cc.Add(metric, 0, *itgen1)
+			}
+
+			res = cc.Search(metric, from, until)
+			if res.Complete {
+				t.Fatalf("from %d, until %d: complete is expected to be false", from, until)
+			}
+
+			if len(res.Start) != 3 {
+				t.Fatalf("from %d, until %d: expected to get 3 itergens at start, got %d", from, until, len(res.Start))
+			}
+
+			if res.Start[0].Ts() != 1000 || res.Start[len(res.Start)-1].Ts() != 1020 {
+				t.Fatalf("from %d, until %d: result set at Start is wrong", from, until)
+			}
+
+			if res.From != 1030 {
+				t.Fatalf("from %d, until %d: expected From to be %d but got %d", from, until, 1030, res.From)
+			}
+
+			if len(res.End) != 3 {
+				t.Fatalf("from %d, until %d: expected to get 3 itergens at end, got %d", from, until, len(res.End))
+			}
+
+			if res.End[0].Ts() != 1060 || res.End[len(res.End)-1].Ts() != 1040 {
+				t.Fatalf("from %d, until %d: result set at End is wrong", from, until)
+			}
+
+			if res.Until != 1040 {
+				t.Fatalf("from %d, until %d: expected Until to be %d but got %d", from, until, 1030, res.Until)
+			}
+		}
 	}
 }
