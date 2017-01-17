@@ -242,15 +242,15 @@ func (mc *CCacheMetric) Search(res *CCSearchResult, from, until uint32) {
 	}
 
 	if !res.Complete && res.From > res.Until {
-		log.Debug("CCacheMetric Search: Found from > until (%d/%d), printing chunks\n", res.From, res.Until)
+		log.Info("CCacheMetric Search: Found from > until (%d/%d), printing chunks\n", res.From, res.Until)
 		mc.debugMetric()
 	}
 }
 
 func (mc *CCacheMetric) debugMetric() {
-	log.Debug("CCacheMetric debugMetric: --- debugging metric ---\n")
+	log.Info("CCacheMetric debugMetric: --- debugging metric ---\n")
 	for _, key := range mc.keys {
-		log.Debug("CCacheMetric debugMetric: ts %d; prev %d; next %d\n", key, mc.chunks[key].Prev, mc.chunks[key].Next)
+		log.Info("CCacheMetric debugMetric: ts %d; prev %d; next %d\n", key, mc.chunks[key].Prev, mc.chunks[key].Next)
 	}
-	log.Debug("CCacheMetric debugMetric: ------------------------\n")
+	log.Info("CCacheMetric debugMetric: ------------------------\n")
 }
