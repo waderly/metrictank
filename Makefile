@@ -16,3 +16,7 @@ docker:
 all:
 	$(MAKE) bin
 	$(MAKE) docker
+
+clean:
+	rm build/*
+	rm scripts/build/*
